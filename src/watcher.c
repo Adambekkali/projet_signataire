@@ -8,9 +8,12 @@
 #include <signal.h>
 #include <pthread.h>    
 #include <semaphore.h>  
+#include <sys/stat.h> 
+#include <errno.h>
 
-#define DOSSIER_ENTREE "/home/adam/projet_signataire/dossier_entree"
-#define SCRIPT_TRAITEMENT "/home/adam/projet_signataire/scripts/traiter.sh"
+#define DOSSIER_ENTREE "dossier_entree"
+#define DOSSIER_SORTIE "dossier_sortie"
+#define SCRIPT_TRAITEMENT "scripts/traiter.sh"
 
 // On définit un pool de 4 "workers" 
 #define NOMBRE_WORKERS 4
@@ -36,9 +39,7 @@ volatile sig_atomic_t doit_terminer = 0;
 
 
 
-/*
- * Bloc 2: Le Gestionnaire d'Arrêt (Signal Handler)
- */
+// Gestion des signaux pour un arrêt propre
 void handle_signal(int sig) {
     doit_terminer = 1;
     // Prévient tous les thread qu'il y a une tache à faire (pour qu'ils prennent compte du signal )
@@ -54,6 +55,9 @@ void handle_signal(int sig) {
 void *worker_thread(void *arg) {
     long id = (long)arg;
     printf("Worker %ld: Démarré.\n", id);
+
+ 
+
 
     while (1) {
         
@@ -107,6 +111,23 @@ int main() {
     pthread_t workers[NOMBRE_WORKERS];
     int fd_inotify;
     struct sigaction sa;
+
+       if (mkdir(DOSSIER_ENTREE, 0755) == -1) {
+        // Si mkdir échoue, on vérifie pourquoi
+        if (errno != EEXIST) { // EEXIST = "Existe Déjà"
+            // Si c'est une VRAIE erreur (ex: pas les droits)
+            perror("Erreur fatale: impossible de créer dossier_entree");
+            return 1; 
+        }
+    }
+
+    if (mkdir(DOSSIER_SORTIE, 0755) == -1) {
+        if (errno != EEXIST) {
+            perror("Erreur fatale: impossible de créer dossier_sortie");
+            return 1;
+        }
+    }
+
 
     printf("Service Signataire : Démarrage...\n");
 
