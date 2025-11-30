@@ -6,7 +6,7 @@ CHEMIN_FICHIER=$1
 NOM_FICHIER=$(basename "$CHEMIN_FICHIER")
 
 # Dossier de destination
-DOSSIER_SORTIE="/home/adam/projet_signataire/dossier_sortie"
+DOSSIER_SORTIE="/dossier_sortie"
 LOG_SERVICE="/tmp/signataire.log"
 
 SIGNATURE="--- Traité par SIGNATAIRE BOT ESIEE IT le $(date) ---"
